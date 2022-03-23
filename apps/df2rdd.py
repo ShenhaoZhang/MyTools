@@ -1,6 +1,6 @@
 import pandas as pd
 
-def df_to_rdd(df,groupby_key,numPartitions=50):
+def df_to_rdd(df, groupby_key,numPartitions=50):
     """
     将SparkDataFrame转换为分组的RDD
 
@@ -18,7 +18,10 @@ def df_to_rdd(df,groupby_key,numPartitions=50):
     RDD
         Key-Value RDD，Key为分组的字段，Value为Pandas DataFrame
     """
-    
+    # 防止groupby_key为单个字符串
+    if not isinstance(groupby_key,list):
+        groupby_key = [groupby_key]
+        
     rdd = df.rdd
     out_rdd = (
         rdd
