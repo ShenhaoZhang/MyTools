@@ -3,7 +3,7 @@ from pyspark.sql import DataFrame
 from pyspark.rdd import RDD
 from pyspark import Row
 
-def table_to_PandasDF_rdd(table:DataFrame, groupby_key:list):
+def table_to_PandasDF_rdd(table:DataFrame, groupby_key:list ) -> RDD:
     """
     将SparkDataFrame转换为分组的RDD
 
@@ -34,7 +34,7 @@ def table_to_PandasDF_rdd(table:DataFrame, groupby_key:list):
     )
     return out_rdd
 
-def PandasDF_rdd_to_table(rdd:RDD):
+def PandasDF_rdd_to_table(rdd:RDD,key_names:list=[]) -> DataFrame:
     """
     将Pandas DataFrame的RDD转换为pyspark的DataFrame
 
@@ -49,7 +49,7 @@ def PandasDF_rdd_to_table(rdd:RDD):
         数据
     """
     # TODO 输入可以不是pair rdd
-    # TODO 输入是pari rdd时，保留key
-    rdd = rdd.flatMapValues(lambda df:map(lambda row:Row(**row[1].to_dict()),df.iterrows()))
-    rdd = rdd.map(lambda rdd:rdd[1])
+    # lambda中rdd是key为分组value为PandasDataFrame的PariedRDD
+    # lambda中row是Pandas df.iterrows()返回的元组，row[0]是df的index，row[1]是由行转换来的Series
+    rdd = rdd.flatMap(lambda rdd:map(lambda row:Row(**dict(zip(key_names,rdd[0])),**row[1].to_dict()),rdd[1].iterrows()))
     return rdd.toDF()
